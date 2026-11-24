@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Script from "next/script";
 import Navbar from "@/components/Navbar";
+import PageHero from "@/components/PageHero";
+import { getSiteContent } from "@/lib/data/siteContent";
 import { buildMetadata } from "@/lib/seo";
 import { submitContactForm } from "./actions";
 
@@ -12,26 +14,16 @@ export const metadata = buildMetadata({
   image: "/contact-hero.jpg",
 });
 
-const address =
-  "4, Adedayo Ogidan Close, Green Park Estate, Abijo, Lagos.";
+type IconComponent = (props: { className?: string }) => React.JSX.Element;
 
-const contactCards = [
-  {
-    label: "Address",
-    detail: address,
-    icon: MapPinIcon,
-  },
-  {
-    label: "Email",
-    detail: "hello@degsslimited.com",
-    icon: MailIcon,
-  },
-  {
-    label: "Phone",
-    detail: "+234 803 866 6532",
-    icon: PhoneIcon,
-  },
-];
+function buildContactCards(content: { address: string; email: string; phone: string }) {
+  const cards: { label: string; detail: string; icon: IconComponent; wide?: boolean }[] = [
+    { label: "Address", detail: content.address, icon: MapPinIcon, wide: true },
+    { label: "Email", detail: content.email, icon: MailIcon },
+    { label: "Phone", detail: content.phone, icon: PhoneIcon },
+  ];
+  return cards;
+}
 
 export default async function ContactPage({
   searchParams,
@@ -43,7 +35,11 @@ export default async function ContactPage({
     service?: string;
   }>;
 }) {
-  const { sent, error, property, service } = await searchParams;
+  const [{ sent, error, property, service }, content] = await Promise.all([
+    searchParams,
+    getSiteContent("contact"),
+  ]);
+  const contactCards = buildContactCards(content);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   const prefilledMessage = property
     ? `I'm interested in ${property.trim().slice(0, 200)}. `
@@ -56,51 +52,26 @@ export default async function ContactPage({
       <Navbar />
 
       <main className="flex-1 bg-neutral-50 pb-24 pt-32 sm:pt-26">
-        <section
-          className="mx-auto max-w-8xl px-4 sm:px-6 lg:px-10"
-          data-navbar-variant="dark"
-        >
-          <div className="relative flex min-h-[360px] flex-col justify-end overflow-hidden rounded-[2rem] bg-neutral-950 px-6 pb-10 pt-10 sm:min-h-[420px] sm:px-10 lg:min-h-[580px] lg:px-16">
-            <Image
-              src="/contact-hero.jpg"
-              alt="Contact DEGSS"
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover"
-            />
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-neutral-950/55"
-            />
-
-            <div className="relative z-10 flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
-              <h1 className="text-5xl font-bold leading-[0.95] tracking-tight text-white sm:text-6xl md:text-7xl">
-                <span className="block">Start a</span>
-                <span className="block">Conversation</span>
-              </h1>
-              <div className="max-w-lg space-y-0.5 text-lg font-medium text-white/70 sm:text-xl lg:text-right">
-                <p>Looking for a property?</p>
-                <p>Thinking about an investment?</p>
-                <p>Exploring a partnership?</p>
-                <p>Or simply curious about what we are building?</p>
-              </div>
-            </div>
-          </div>
-        </section>
+        <PageHero
+          variant="feature"
+          title={content.heroTitle}
+          description={content.heroText}
+          image={content.heroImage}
+          imageAlt={content.heroImageAlt}
+        />
 
         <div className="mx-auto grid max-w-7xl gap-6 px-6 pt-12 sm:px-10 sm:pt-16 lg:grid-cols-2 lg:px-16">
           <div id="contact-form" className="rounded-3xl bg-neutral-100 p-8 sm:p-10 scroll-mt-32">
             <h1 className="text-4xl font-bold tracking-tight text-neutral-950 sm:text-5xl">
-              Get in Touch
+              {content.formHeading}
             </h1>
             <p className="mt-2 text-neutral-600">
-              Tell us a little about what you&apos;re looking for. We&apos;ll take it from there.
+              {content.formIntro}
             </p>
 
             {sent && (
               <p className="mt-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-                Thanks — your message has been sent. We&apos;ll be in touch soon.
+                {content.formSuccess}
               </p>
             )}
             {error === "captcha" && (
@@ -174,7 +145,7 @@ export default async function ContactPage({
 
           <div className="relative min-h-[520px] overflow-hidden rounded-3xl bg-neutral-950">
             <Image
-              src="/contcat-bg.jpg"
+              src={content.detailsImage}
               alt=""
               fill
               priority
@@ -186,11 +157,11 @@ export default async function ContactPage({
             />
 
             <div className="relative grid h-full grid-cols-2 gap-4 p-4 sm:p-6">
-              {contactCards.map(({ label, detail, icon: Icon }) => (
+              {contactCards.map(({ label, detail, icon: Icon, wide }) => (
                 <div
                   key={label}
                   className={`flex flex-col justify-between gap-8 rounded-2xl bg-white p-6 ${
-                    label === "Address" ? "col-span-2" : ""
+                    wide ? "col-span-2" : ""
                   }`}
                 >
                   <Icon className="h-6 w-6 text-neutral-950" />
@@ -198,7 +169,7 @@ export default async function ContactPage({
                     <h3 className="text-lg font-semibold text-neutral-950">
                       {label}
                     </h3>
-                    <p className="mt-2 text-sm text-neutral-600">{detail}</p>
+                    <p className="mt-2 whitespace-pre-line text-sm text-neutral-600">{detail}</p>
                   </div>
                 </div>
               ))}
@@ -209,7 +180,7 @@ export default async function ContactPage({
         <div className="mx-auto mt-20 max-w-7xl px-6 sm:px-10 lg:px-16">
           <div className="overflow-hidden rounded-3xl border border-black/10">
             <iframe
-              src={`https://www.google.com/maps?q=${encodeURIComponent(address)}&z=12&output=embed`}
+              src={`https://www.google.com/maps?q=${encodeURIComponent(content.address)}&z=12&output=embed`}
               width="100%"
               height="550"
               style={{ border: 0 }}

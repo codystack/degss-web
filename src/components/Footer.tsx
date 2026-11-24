@@ -1,31 +1,44 @@
 import Link from "next/link";
+import type { footerPage } from "@/lib/content/pages/site";
+import { fillTemplate, isSafeHref, parseLinkLines } from "@/lib/content/schema";
 
-const mainLinks = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Services", href: "/services" },
-];
+type FooterContent = typeof footerPage.defaults;
 
-const quickLinks = [
-  { label: "FAQs", href: "/faqs" },
-  { label: "Contact us", href: "/contact" },
-  { label: "Properties", href: "/properties" },
-];
+const socialIcons: Record<string, { label: string; icon: (props: { className?: string }) => React.JSX.Element }> = {
+  facebook: { label: "Facebook", icon: FacebookIcon },
+  x: { label: "X", icon: XIcon },
+  instagram: { label: "Instagram", icon: InstagramIcon },
+  linkedin: { label: "LinkedIn", icon: LinkedInIcon },
+};
 
-const socialLinks = [
-  { label: "Facebook", href: "https://www.facebook.com/people/Degss-Limited/61580249255835/", icon: FacebookIcon },
-  { label: "X", href: "https://x.com/DegssLimited", icon: XIcon },
-  { label: "Instagram", href: "https://www.instagram.com/degsslimited", icon: InstagramIcon },
-  // { label: "LinkedIn", href: "#", icon: LinkedInIcon },
-];
+function LinkColumn({ heading, links }: { heading: string; links: string }) {
+  return (
+    <div>
+      <h3 className="text-base font-semibold">{heading}</h3>
+      <ul className="mt-5 space-y-3">
+        {parseLinkLines(links).map(({ label, href }) => (
+          <li key={`${label}-${href}`}>
+            <Link href={href} className="text-white/60 transition-colors hover:text-white">
+              {label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
-export default function Footer() {
+export default function Footer({ content }: { content: FooterContent }) {
+  const socials = content.socials.filter(
+    (social) => socialIcons[social.platform] && isSafeHref(social.url)
+  );
+
   return (
     <footer className="bg-[#39548b] text-white" data-navbar-variant="dark">
       <div className="mx-auto max-w-7xl px-6 py-20 sm:px-10 lg:px-16">
         <div className="flex flex-col gap-16 lg:flex-row lg:justify-between">
           <div className="w-full shrink-0 lg:w-[320px]">
-            <h2 className="text-2xl font-semibold">Subscribe to our newsletter</h2>
+            <h2 className="text-2xl font-semibold">{content.newsletterHeading}</h2>
             <form className="mt-6 flex w-full items-center rounded-full border border-white/20 bg-transparent pl-6 pr-1.5 py-1.5">
               <input
                 type="email"
@@ -43,10 +56,12 @@ export default function Footer() {
             </form>
 
             <div className="mt-10 flex items-center gap-4">
-              {socialLinks.map(({ label, href, icon: Icon }) => (
+              {socials.map(({ platform, url }) => {
+                const { label, icon: Icon } = socialIcons[platform];
+                return (
                 <a
-                  key={label}
-                  href={href}
+                  key={`${platform}-${url}`}
+                  href={url}
                   aria-label={label}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -54,41 +69,18 @@ export default function Footer() {
                 >
                   <Icon className="h-4 w-4" />
                 </a>
-              ))}
+                );
+              })}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 sm:gap-16">
+            <LinkColumn heading={content.column1Heading} links={content.column1Links} />
+            <LinkColumn heading={content.column2Heading} links={content.column2Links} />
             <div>
-              <h3 className="text-base font-semibold">Main pages</h3>
-              <ul className="mt-5 space-y-3">
-                {mainLinks.map(({ label, href }) => (
-                  <li key={label}>
-                    <Link href={href} className="text-white/60 transition-colors hover:text-white">
-                      {label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-base font-semibold">Quick Links</h3>
-              <ul className="mt-5 space-y-3">
-                {quickLinks.map(({ label, href }) => (
-                  <li key={label}>
-                    <Link href={href} className="text-white/60 transition-colors hover:text-white">
-                      {label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-base font-semibold">Location</h3>
-              <address className="mt-5 space-y-3 text-white/60 not-italic">
-                <p>4, Adedayo Ogidan Close, Green Park Estate, Abijo, Lagos.</p>
+              <h3 className="text-base font-semibold">{content.locationHeading}</h3>
+              <address className="mt-5 space-y-3 whitespace-pre-line text-white/60 not-italic">
+                <p>{content.address}</p>
               </address>
             </div>
           </div>
@@ -121,14 +113,13 @@ export default function Footer() {
       </div>
 
       <div className="mx-auto flex max-w-7xl flex-col-reverse items-center gap-4 border-t border-white/10 px-6 py-6 text-sm text-white/50 sm:flex-row sm:justify-between sm:px-10 lg:px-16">
-        <p>&copy; {new Date().getFullYear()} DEGSS. All rights reserved.</p>
+        <p>{fillTemplate(content.copyright, { year: String(new Date().getFullYear()) })}</p>
         <div className="flex items-center gap-6">
-          <Link href="/terms" className="transition-colors hover:text-white">
-            Terms &amp; Conditions
-          </Link>
-          <Link href="/privacy" className="transition-colors hover:text-white">
-            Privacy Policy
-          </Link>
+          {parseLinkLines(content.legalLinks).map(({ label, href }) => (
+            <Link key={`${label}-${href}`} href={href} className="transition-colors hover:text-white">
+              {label}
+            </Link>
+          ))}
         </div>
       </div>
     </footer>

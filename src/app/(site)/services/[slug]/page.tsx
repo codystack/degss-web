@@ -6,6 +6,8 @@ import Navbar from "@/components/Navbar";
 import PageHero from "@/components/PageHero";
 import { getServiceBySlug, listServices } from "@/lib/data/services";
 import { serviceContent } from "@/data/service-content";
+import { fillTemplate } from "@/lib/content/schema";
+import { getSiteContent } from "@/lib/data/siteContent";
 import { buildMetadata } from "@/lib/seo";
 
 export async function generateStaticParams() {
@@ -43,7 +45,10 @@ export default async function ServicePage({
   params,
 }: PageProps<"/services/[slug]">) {
   const { slug } = await params;
-  const service = await getServiceBySlug(slug);
+  const [service, shared] = await Promise.all([
+    getServiceBySlug(slug),
+    getSiteContent("service-detail"),
+  ]);
   const content = serviceContent[slug];
 
   if (!service && !content) {
@@ -90,7 +95,7 @@ export default async function ServicePage({
               <p className="mt-6 text-lg leading-7 text-neutral-600">{intro}</p>
 
               <h2 className="mt-12 text-lg font-semibold text-neutral-950">
-                What&apos;s included
+                {shared.featuresHeading}
               </h2>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 {features.map((feature) => (
@@ -111,23 +116,20 @@ export default async function ServicePage({
 
             <div className="lg:sticky lg:top-28 lg:self-start">
               <div className="rounded-3xl bg-[#39548b] p-6 text-white sm:p-8">
-                <h3 className="text-lg font-semibold">Talk to us about {label}</h3>
-                <p className="mt-2 text-sm leading-6 text-white/60">
-                  Tell us what you&apos;re looking for and one of our property
-                  consultants will reach out with next steps.
-                </p>
+                <h3 className="text-lg font-semibold">{fillTemplate(shared.panelHeading, { service: label })}</h3>
+                <p className="mt-2 text-sm leading-6 text-white/60">{shared.panelText}</p>
                 <Link
                   href={`/contact?service=${encodeURIComponent(label)}#contact-form`}
                   className="mt-6 flex w-full items-center justify-center gap-1.5 rounded-full bg-white px-6 py-3 text-sm font-medium text-neutral-950 transition-colors hover:bg-white/90"
                 >
-                  Enquire now
+                  {shared.panelEnquireLabel}
                   <ArrowUpRightIcon className="h-3.5 w-3.5" />
                 </Link>
                 <Link
                   href={`/get-started?service=${encodeURIComponent(label)}`}
                   className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full border border-white/20 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-white/10"
                 >
-                  Get started
+                  {shared.panelGetStartedLabel}
                 </Link>
               </div>
             </div>
@@ -158,26 +160,23 @@ export default async function ServicePage({
             />
             <div className="relative z-10 max-w-lg">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Ready to talk about {label}?
+                {fillTemplate(shared.ctaHeading, { service: label })}
               </h2>
-              <p className="mt-3 text-white/70">
-                Tell us what you&apos;re looking for and one of our property
-                consultants will reach out with next steps.
-              </p>
+              <p className="mt-3 text-white/70">{shared.ctaText}</p>
             </div>
             <div className="relative z-10 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
               <Link
                 href={`/get-started?service=${encodeURIComponent(label)}`}
                 className="flex items-center justify-center gap-1.5 rounded-full bg-white px-6 py-3.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-white/90"
               >
-                Get started
+                {shared.ctaPrimaryLabel}
                 <ArrowUpRightIcon className="h-3.5 w-3.5" />
               </Link>
               <Link
                 href="/contact"
                 className="flex items-center justify-center gap-1.5 rounded-full border border-white/20 px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-white/10"
               >
-                Contact us
+                {shared.ctaSecondaryLabel}
               </Link>
             </div>
           </div>

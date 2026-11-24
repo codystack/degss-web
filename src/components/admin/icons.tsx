@@ -172,3 +172,13 @@ export function LogoutIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function PagesIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path d="M6.5 3.5H14L18.5 8V19C18.5 19.83 17.83 20.5 17 20.5H6.5C5.67 20.5 5 19.83 5 19V5C5 4.17 5.67 3.5 6.5 3.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M13.5 3.5V8.5H18.5" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M8.5 12.5H15M8.5 16H13" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}

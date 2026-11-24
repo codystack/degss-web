@@ -12,6 +12,7 @@ import {
   LogoutIcon,
   MailIcon,
   NewspaperIcon,
+  PagesIcon,
   SlidesIcon,
   StarIcon,
   TargetIcon,
@@ -22,6 +23,7 @@ import {
 
 const navItems: { label: string; href: string; icon: (props: IconProps) => React.JSX.Element }[] = [
   { label: "Dashboard", href: "/admin", icon: GridIcon },
+  { label: "Pages & navigation", href: "/admin/pages", icon: PagesIcon },
   { label: "Hero slides", href: "/admin/hero-slides", icon: SlidesIcon },
   { label: "Properties", href: "/admin/properties", icon: BuildingIcon },
   { label: "Services", href: "/admin/services", icon: BriefcaseIcon },

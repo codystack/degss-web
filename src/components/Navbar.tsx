@@ -3,6 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { isSafeHref, parseLinkLines } from "@/lib/content/schema";
+import { useSiteNav, type NavContent } from "./SiteNavProvider";
 
 type NavChild = {
   label: string;
@@ -12,8 +14,22 @@ type NavChild = {
 };
 
 type NavItem =
-  | { label: string; href: string; children?: undefined }
-  | { label: string; href?: undefined; children: NavChild[] };
+  | { label: string; href: string; children?: undefined; collapsible?: undefined }
+  | { label: string; href?: undefined; children: NavChild[]; collapsible: boolean };
+
+/** Admin-edited menu → render-ready items. Invalid/empty entries are skipped. */
+function buildNavItems(items: NavContent["items"], serviceChildren: NavChild[]): NavItem[] {
+  return items.flatMap((item): NavItem[] => {
+    if (item.type === "services") {
+      return [{ label: item.label, children: serviceChildren, collapsible: true }];
+    }
+    if (item.type === "dropdown") {
+      const children = parseLinkLines(item.links);
+      return children.length > 0 ? [{ label: item.label, children, collapsible: false }] : [];
+    }
+    return isSafeHref(item.href) ? [{ label: item.label, href: item.href }] : [];
+  });
+}
 
 const iconMap: Record<string, (props: { className?: string }) => React.JSX.Element> = {
   BuildingIcon,
@@ -70,20 +86,8 @@ type ServiceApiRow = {
   iconName: string;
 };
 
-const staticNavItems: NavItem[] = [
-  {
-    label: "Company",
-    children: [
-      { label: "About us", href: "/about" },
-      { label: "Team", href: "/about/team" },
-    ],
-  },
-  { label: "Properties", href: "/properties" },
-  { label: "Blog", href: "/blog" },
-  { label: "Contact us", href: "/contact" },
-];
-
 export default function Navbar() {
+  const nav = useSiteNav();
   const [open, setOpen] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
   const [overDark, setOverDark] = useState(false);
@@ -117,11 +121,8 @@ export default function Navbar() {
     };
   }, []);
 
-  const navItems: NavItem[] = [
-    staticNavItems[0],
-    { label: "What We Do", children: serviceChildren },
-    ...staticNavItems.slice(1),
-  ];
+  const navItems = buildNavItems(nav.items, serviceChildren);
+  const ctaHref = isSafeHref(nav.ctaHref) ? nav.ctaHref : "/get-started";
 
   useEffect(() => {
     const darkZones = document.querySelectorAll<HTMLElement>(
@@ -177,7 +178,7 @@ export default function Navbar() {
         <div className="flex h-14 items-center gap-4 rounded-full border border-black/10 bg-white pl-6 pr-6 backdrop-blur">
           <Link href="/" className="flex items-center">
             <Image
-              src="/logo-dark.svg"
+              src={nav.logo}
               alt="DEGSS"
               width={362}
               height={124}
@@ -258,14 +259,14 @@ export default function Navbar() {
 
         <div className="hidden items-center gap-3 md:flex">
           <Link
-            href="/get-started"
+            href={ctaHref}
             className={`flex h-14 items-center gap-1.5 rounded-full px-6 text-sm font-medium transition-colors ${
               overDark
                 ? "bg-white text-neutral-950 hover:bg-white/90"
                 : "bg-[#39548b] text-white hover:bg-[#263d6b]"
             }`}
           >
-            Get started
+            {nav.ctaLabel}
             <ArrowUpRightIcon className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -286,7 +287,7 @@ export default function Navbar() {
           {navItems.map((item) =>
             item.children ? (
               <div key={item.label} className="flex flex-col">
-                {item.label === "What We Do" ? (
+                {item.collapsible ? (
                   <button
                     type="button"
                     onClick={() => setMobileServicesOpen((v) => !v)}
@@ -305,7 +306,7 @@ export default function Navbar() {
                     {item.label}
                   </span>
                 )}
-                {(item.label !== "What We Do" || mobileServicesOpen) &&
+                {(!item.collapsible || mobileServicesOpen) &&
                 item.children.map((child) =>
                   child.description ? (
                     <Link
@@ -346,10 +347,10 @@ export default function Navbar() {
           )}
           <div className="mt-1 flex flex-col gap-2 border-t border-black/5 pt-2">
             <Link
-              href="/get-started"
+              href={ctaHref}
               className="rounded-full bg-[#39548b] px-4 py-2.5 text-center text-sm font-medium text-white"
             >
-              Get started
+              {nav.ctaLabel}
             </Link>
           </div>
         </div>

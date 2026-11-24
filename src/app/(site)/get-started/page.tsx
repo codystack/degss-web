@@ -1,6 +1,9 @@
 import Image from "next/image";
 import Script from "next/script";
 import Navbar from "@/components/Navbar";
+import { RichText } from "@/components/RichText";
+import { splitLines } from "@/lib/content/schema";
+import { getSiteContent } from "@/lib/data/siteContent";
 import { buildMetadata } from "@/lib/seo";
 import BudgetField from "./BudgetField";
 import { submitGetStartedForm } from "./actions";
@@ -12,28 +15,17 @@ export const metadata = buildMetadata({
   path: "/get-started",
 });
 
-const interests = [
-  "Land",
-  "House",
-  "PrimeCycle",
-  "Farmland",
-  "Commercial Property",
-];
-
-const timelines = [
-  "Immediately",
-  "Within 3 months",
-  "3 – 6 months",
-  "6 – 12 months",
-  "Just exploring",
-];
-
 export default async function GetStartedPage({
   searchParams,
 }: {
   searchParams: Promise<{ sent?: string; error?: string; service?: string }>;
 }) {
-  const { sent, error, service } = await searchParams;
+  const [{ sent, error, service }, content] = await Promise.all([
+    searchParams,
+    getSiteContent("get-started"),
+  ]);
+  const interests = splitLines(content.interests);
+  const timelines = splitLines(content.timelines);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   const prefilledRequirement = service
     ? `I'm interested in ${service.trim().slice(0, 200)}. `
@@ -48,17 +40,15 @@ export default async function GetStartedPage({
           <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
             <div className="rounded-3xl bg-neutral-100 p-8 sm:p-10">
               <h1 className="max-w-xl text-4xl font-bold leading-[1.05] tracking-tight text-neutral-950 sm:text-5xl">
-                What can DEGSS help{" "}
-                <span className="italic text-[#39548b]">you with?</span>
+                <RichText text={content.heading} accentClassName="italic text-[#39548b]" />
               </h1>
               <p className="mt-4 max-w-lg text-neutral-600">
-                Tell us what you&apos;re looking for, and one of our property
-                consultants will contact you with suitable options.
+                {content.intro}
               </p>
 
               {sent && (
                 <p className="mt-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-                  Thanks — we&apos;ve got your details. Our team will reach out within 24 hours.
+                  {content.formSuccess}
                 </p>
               )}
               {error === "captcha" && (
@@ -166,8 +156,7 @@ export default async function GetStartedPage({
                     Send message
                   </button>
                   <p className="text-sm text-neutral-500">
-                    The DEGSS team reads every message personally and
-                    responds within 24 hours.
+                    {content.submitNote}
                   </p>
                 </div>
               </form>
@@ -185,46 +174,45 @@ export default async function GetStartedPage({
                 />
                 <div className="relative z-10 flex items-center gap-3">
                   <Image
-                    src="/team/Daniel.jpeg"
-                    alt="Daniel Onwuzuka"
+                    src={content.personPhoto}
+                    alt={content.personName}
                     width={56}
                     height={56}
                     className="h-14 w-14 rounded-full object-cover"
                   />
                   <div>
-                    <p className="font-semibold">Daniel Onwuzuka</p>
-                    <p className="text-sm text-white/60">Managing Director</p>
+                    <p className="font-semibold">{content.personName}</p>
+                    <p className="text-sm text-white/60">{content.personRole}</p>
                   </div>
                 </div>
                 <p className="relative z-10 mt-5 text-sm leading-6 text-white/70">
-                  Every enquiry that comes through this form is reviewed
-                  personally by the DEGSS leadership team.
+                  {content.personMessage}
                 </p>
                 <div className="relative z-10 mt-5 flex items-center gap-2.5 border-t border-white/10 pt-5 text-sm">
                   <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
-                  Responds within 24 hours
+                  {content.responseNote}
                 </div>
               </div>
 
               <div className="rounded-3xl border border-black/10 bg-white p-6 sm:p-7">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-                  Office details
+                  {content.officeHeading}
                 </p>
                 <div className="mt-5 space-y-5">
                   <DetailItem
                     icon={MapPinIcon}
                     label="Address"
-                    value="Ibeju-Lekki, Lagos"
+                    value={content.officeAddress}
                   />
                   <DetailItem
                     icon={ClockIcon}
                     label="Hours"
-                    value="Mon – Sat, 9am – 5pm"
+                    value={content.officeHours}
                   />
                   <DetailItem
                     icon={PhoneIcon}
                     label="Direct line"
-                    value="+234 803 866 6532"
+                    value={content.officePhone}
                   />
                 </div>
               </div>
@@ -235,11 +223,10 @@ export default async function GetStartedPage({
                 </span>
                 <div>
                   <h3 className="font-semibold text-neutral-950">
-                    Your privacy is protected
+                    {content.privacyHeading}
                   </h3>
                   <p className="mt-1.5 text-sm leading-6 text-neutral-600">
-                    All enquiries are handled with discretion. Your details
-                    are never shared with third parties.
+                    {content.privacyText}
                   </p>
                 </div>
               </div>

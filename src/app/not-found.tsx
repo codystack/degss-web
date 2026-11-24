@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SiteNavProvider } from "@/components/SiteNavProvider";
+import { getSiteContent } from "@/lib/data/siteContent";
 
 export const metadata: Metadata = {
   title: "Page Not Found",
@@ -9,9 +11,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function NotFound() {
+export default async function NotFound() {
+  const [nav, footer] = await Promise.all([
+    getSiteContent("navigation"),
+    getSiteContent("footer"),
+  ]);
+
   return (
-    <>
+    <SiteNavProvider nav={nav}>
       <Navbar />
 
       <main className="flex flex-1 flex-col items-center justify-center bg-neutral-50 px-6 py-32 text-center sm:px-10">
@@ -42,7 +49,7 @@ export default function NotFound() {
         </div>
       </main>
 
-      <Footer />
-    </>
+      <Footer content={footer} />
+    </SiteNavProvider>
   );
 }

@@ -1,8 +1,8 @@
 import Navbar from "@/components/Navbar";
 import PageHero from "@/components/PageHero";
 import PropertyCard from "@/components/PropertyCard";
-import { unsplash } from "@/data/properties";
 import { listProperties } from "@/lib/data/properties";
+import { getSiteContent } from "@/lib/data/siteContent";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
@@ -13,7 +13,10 @@ export const metadata = buildMetadata({
 });
 
 export default async function PropertiesPage() {
-  const properties = await listProperties();
+  const [properties, content] = await Promise.all([
+    listProperties(),
+    getSiteContent("properties"),
+  ]);
 
   return (
     <>
@@ -21,16 +24,16 @@ export default async function PropertiesPage() {
 
       <main className="flex-1 bg-neutral-50 pb-24 pt-32 sm:pt-26">
         <PageHero
-          title="Properties"
-          description="Find the perfect property with detailed listings tailored to your needs and lifestyle."
-          image={unsplash("1583608205776-bfd35f0d9f83")}
-          imageAlt="DEGSS property"
+          title={content.heroTitle}
+          description={content.heroText}
+          image={content.heroImage}
+          imageAlt={content.heroImageAlt}
         />
 
         <div className="mx-auto max-w-7xl px-6 pt-12 sm:px-10 sm:pt-16 lg:px-16">
           {properties.length === 0 ? (
             <p className="rounded-3xl border border-black/10 bg-white p-10 text-center text-neutral-500">
-              No properties listed yet — check back soon.
+              {content.emptyText}
             </p>
           ) : (
             <div className="grid gap-6 sm:grid-cols-3">

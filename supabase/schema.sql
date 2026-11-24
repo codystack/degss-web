@@ -259,6 +259,20 @@ create table if not exists site_visits (
 
 alter table site_visits enable row level security;
 
+-- ---------------------------------------------------------------------------
+-- Editable page content (Admin → Pages & navigation)
+-- One row per page/area; `data` holds only what an admin has saved. Anything
+-- missing falls back to the defaults in src/lib/content/pages/*.ts, so this
+-- table can start empty. Safe to run against an existing database.
+-- ---------------------------------------------------------------------------
+create table if not exists site_content (
+  key text primary key,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table site_content enable row level security;
+
 create index if not exists hero_slides_sort_order_idx on hero_slides (sort_order, created_at);
 create index if not exists properties_sort_order_idx on properties (sort_order, created_at);
 create index if not exists faqs_sort_order_idx on faqs (sort_order, created_at);

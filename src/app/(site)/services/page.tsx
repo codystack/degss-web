@@ -4,6 +4,7 @@ import PageHero from "@/components/PageHero";
 import { listServices } from "@/lib/data/services";
 import { serviceContent, serviceContentList } from "@/data/service-content";
 import { unsplash } from "@/data/properties";
+import { getSiteContent } from "@/lib/data/siteContent";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
@@ -14,7 +15,10 @@ export const metadata = buildMetadata({
 });
 
 export default async function ServicesPage() {
-  const dbServices = await listServices();
+  const [dbServices, content] = await Promise.all([
+    listServices(),
+    getSiteContent("services"),
+  ]);
 
   const services =
     dbServices.length > 0
@@ -41,10 +45,10 @@ export default async function ServicesPage() {
 
       <main className="flex-1 bg-neutral-50 pb-24 pt-32 sm:pt-26">
         <PageHero
-          title="What we do"
-          description="From development to Prime Circle, every service built around real estate that works harder for you."
-          image={unsplash("1486406146926-c627a92ad1ab")}
-          imageAlt="DEGSS services"
+          title={content.heroTitle}
+          description={content.heroText}
+          image={content.heroImage}
+          imageAlt={content.heroImageAlt}
         />
 
         <div className="mx-auto max-w-7xl px-6 pt-12 sm:px-10 sm:pt-16 lg:px-16">

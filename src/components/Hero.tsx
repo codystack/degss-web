@@ -4,6 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Navbar from "./Navbar";
+import { RichText } from "./RichText";
+
+export type HeroText = {
+  title: string;
+  text: string;
+  primaryLabel: string;
+  primaryHref: string;
+  secondaryLabel: string;
+  secondaryHref: string;
+};
 
 export const defaultHeroSlides = [
   { src: "/hero-img.jpg", alt: "DEGSS residential building" },
@@ -15,8 +25,10 @@ const SLIDE_INTERVAL_MS = 6000;
 
 export default function Hero({
   slides = defaultHeroSlides,
+  content,
 }: {
   slides?: { src: string; alt: string }[];
+  content: HeroText;
 }) {
   const [active, setActive] = useState(0);
 
@@ -60,29 +72,26 @@ export default function Hero({
       <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col justify-end gap-10 px-6 pb-14 pt-40 sm:px-10 lg:px-0">
         <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-end">
           <h1 className="max-w-3xl text-balance text-5xl font-bold leading-[0.95] tracking-tight text-white sm:text-6xl md:text-7xl">
-            Welcome to
-            <br />
-            More.
+            <RichText text={content.title} />
           </h1>
           <p className="max-w-sm text-lg leading-7 text-white/60 lg:text-right">
-            Real estate should give you more than somewhere to put your money.
-            It should create room for life, wealth, possibility and legacy.
+            {content.text}
           </p>
         </div>
 
         <div className="flex w-fit flex-col gap-3 sm:flex-row">
           <Link
-            href="/properties"
+            href={content.primaryHref}
             className="flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-white/90"
           >
-            Explore properties
+            {content.primaryLabel}
             <ArrowUpRightIcon className="h-4 w-4" />
           </Link>
           <Link
-            href="/contact"
+            href={content.secondaryHref}
             className="flex items-center justify-center gap-2 rounded-full border border-white/30 px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-white/10"
           >
-            Get in touch
+            {content.secondaryLabel}
           </Link>
         </div>
       </div>
