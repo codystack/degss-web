@@ -31,6 +31,13 @@ function getNotyf() {
   return notyf;
 }
 
+/** Fires a toast directly from client code (e.g. client-side validation). */
+export function showToast(type: "success" | "error", message: string) {
+  const instance = getNotyf();
+  if (type === "success") instance.success(message);
+  else instance.error(message);
+}
+
 /**
  * Mounted once in the dashboard layout. Server actions redirect with
  * ?toastSuccess=... / ?toastError=... (see src/lib/toast.ts); this picks

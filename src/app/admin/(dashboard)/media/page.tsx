@@ -3,6 +3,8 @@ import ConfirmSubmitButton from "@/components/admin/ConfirmSubmitButton";
 import EmptyState from "@/components/admin/EmptyState";
 import { isCloudinaryConfigured, listMediaAssets } from "@/lib/cloudinary";
 import { deleteMediaAssetAction } from "./actions";
+import MediaUploadButton from "./MediaUploadButton";
+import { MEDIA_UPLOAD_LIMITS } from "./uploadLimits";
 
 const PAGE_SIZE = 15;
 
@@ -34,10 +36,17 @@ export default async function AdminMediaPage({
 
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">Media library</h1>
-      <p className="mt-1 text-sm text-neutral-500">
-        Every image uploaded through the property and team forms.
-      </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Media library</h1>
+          <p className="mt-1 text-sm text-neutral-500">
+            Every image uploaded here or through the admin forms. Up to{" "}
+            {MEDIA_UPLOAD_LIMITS.maxFiles} images at a time,{" "}
+            {MEDIA_UPLOAD_LIMITS.maxFileMb} MB each.
+          </p>
+        </div>
+        {configured && <MediaUploadButton />}
+      </div>
 
       {!configured && (
         <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
@@ -53,7 +62,7 @@ export default async function AdminMediaPage({
         {configured && assets.length === 0 ? (
           <EmptyState
             title="No images yet"
-            description="Images you upload through property or team forms will show up here."
+            description="Use “Upload images” above, or upload through the property and team forms."
           />
         ) : (
           <>
