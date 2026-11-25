@@ -1,3 +1,5 @@
+import type { ComponentProps } from "react";
+
 export const inputClass =
   "w-full rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm text-neutral-950 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-950/20";
 
@@ -75,6 +77,25 @@ export function TextareaField({
   );
 }
 
+/** Native select with the arrow drawn ourselves, so it sits inset from the edge. */
+export function SelectBox({ className = "", ...props }: ComponentProps<"select">) {
+  return (
+    <div className="relative">
+      <select {...props} className={`${inputClass} cursor-pointer appearance-none pr-11 ${className}`} />
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 20 20"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
+      >
+        <path d="m5 7.5 5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </div>
+  );
+}
+
 export function SelectField({
   label,
   name,
@@ -94,19 +115,13 @@ export function SelectField({
         {label}
         {required && <span className="text-neutral-950"> *</span>}
       </label>
-      <select
-        id={name}
-        name={name}
-        defaultValue={defaultValue}
-        required={required}
-        className={inputClass}
-      >
+      <SelectBox id={name} name={name} defaultValue={defaultValue} required={required}>
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
           </option>
         ))}
-      </select>
+      </SelectBox>
     </div>
   );
 }

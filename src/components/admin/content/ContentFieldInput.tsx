@@ -1,7 +1,7 @@
 "use client";
 
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
-import { inputClass } from "@/components/admin/fields";
+import { inputClass, SelectBox } from "@/components/admin/fields";
 import type { ScalarField } from "@/lib/content/schema";
 
 /**
@@ -40,13 +40,13 @@ export default function ContentFieldInput({
           className={`${inputClass} resize-y`}
         />
       ) : field.type === "select" ? (
-        <select id={id} name={name} defaultValue={value || field.options[0]?.value} className={inputClass}>
+        <SelectBox id={id} name={name} defaultValue={value || field.options[0]?.value}>
           {field.options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
           ))}
-        </select>
+        </SelectBox>
       ) : (
         <input
           id={id}
