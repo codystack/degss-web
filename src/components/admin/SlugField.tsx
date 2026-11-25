@@ -1,27 +1,20 @@
 "use client";
 
 import { useRef } from "react";
+import { slugify } from "@/lib/slug";
 
 const inputClass =
   "w-full rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm text-neutral-950 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-950/20";
 
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
 export default function SlugField({
   defaultValue,
   titleFieldName = "title",
+  generateLabel = "Generate from title",
   hint = "Used in the URL, e.g. /properties/hrizon-villa",
 }: {
   defaultValue?: string;
   titleFieldName?: string;
+  generateLabel?: string;
   hint?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -46,7 +39,7 @@ export default function SlugField({
           onClick={handleGenerate}
           className="text-xs font-medium text-[#39548b] hover:underline"
         >
-          Generate from title
+          {generateLabel}
         </button>
       </div>
       <input

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Field, SelectField, TextareaField } from "@/components/admin/fields";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
+import SlugField from "@/components/admin/SlugField";
 import { SERVICE_ICON_NAMES, type Service } from "@/lib/data/services";
 
 export default function ServiceForm({
@@ -14,12 +15,11 @@ export default function ServiceForm({
     <form action={action} className="max-w-2xl space-y-5 rounded-2xl border border-black/10 bg-white p-6">
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Label" name="label" defaultValue={service?.label} required hint="e.g. Development" />
-        <Field
-          label="Slug"
-          name="slug"
+        <SlugField
           defaultValue={service?.slug}
-          required
-          hint="Used in the URL, e.g. /services/development"
+          titleFieldName="label"
+          generateLabel="Generate from label"
+          hint="The page address, e.g. /services/development. Spaces and symbols are tidied up when you save."
         />
       </div>
       <TextareaField

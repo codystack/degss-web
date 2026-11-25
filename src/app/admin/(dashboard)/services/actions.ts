@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { linesToArray } from "@/components/admin/fields";
 import { resolveUploadedImage } from "@/lib/cloudinary";
+import { slugify } from "@/lib/slug";
 import { withToast } from "@/lib/toast";
 import {
   createService,
@@ -13,13 +14,22 @@ import {
   type ServiceInput,
 } from "@/lib/data/services";
 
+class ServiceInputError extends Error {}
+
 async function readServiceInput(formData: FormData): Promise<ServiceInput> {
   const iconName = String(formData.get("iconName") ?? "");
+  const label = String(formData.get("label") ?? "").trim();
+  // Any text is accepted; it's tidied into a URL-safe slug ("Agro Farming!" -> "agro-farming").
+  const slug = slugify(String(formData.get("slug") ?? "")) || slugify(label);
+
+  if (!label) throw new ServiceInputError("Please enter a label.");
+  if (!slug) throw new ServiceInputError("Please enter a slug using letters or numbers.");
+
   const heroImage = await resolveUploadedImage(formData, "heroImage", "services");
 
   return {
-    slug: String(formData.get("slug") ?? "").trim(),
-    label: String(formData.get("label") ?? "").trim(),
+    slug,
+    label,
     description: String(formData.get("description") ?? "").trim(),
     iconName: isServiceIconName(iconName) ? iconName : "BuildingIcon",
     heroImage,
@@ -33,6 +43,17 @@ function revalidateServicePaths() {
   revalidatePath("/", "layout");
 }
 
+function saveErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ServiceInputError) return err.message;
+  if (err instanceof Error && /duplicate key|services_slug_key/i.test(err.message)) {
+    return "Another service already uses that slug. Please choose a different one.";
+  }
+  if (err instanceof Error && /column .* (does not exist|in the schema cache)/i.test(err.message)) {
+    return "The database is missing service columns. Run the services upgrade lines in supabase/schema.sql in the Supabase SQL editor.";
+  }
+  return fallback;
+}
+
 export async function createServiceAction(formData: FormData) {
   try {
     const input = await readServiceInput(formData);
@@ -40,7 +61,7 @@ export async function createServiceAction(formData: FormData) {
   } catch (err) {
     console.error("[services] create failed:", err);
     redirect(
-      withToast("/admin/services", "error", "Could not create the service.")
+      withToast("/admin/services", "error", saveErrorMessage(err, "Could not create the service."))
     );
   }
 
@@ -55,7 +76,7 @@ export async function updateServiceAction(id: string, formData: FormData) {
   } catch (err) {
     console.error("[services] update failed:", err);
     redirect(
-      withToast("/admin/services", "error", "Could not update the service.")
+      withToast(`/admin/services/${id}/edit`, "error", saveErrorMessage(err, "Could not update the service."))
     );
   }
 
